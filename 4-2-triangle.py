@@ -15,13 +15,17 @@ def dec2bin(x, number):
     
 
 try:
+    a = int(input("Input delay in sec\n"))
     while True:
         for i in range(256):
             dec2bin(i, number)
             GPIO.output (dac, number)
+            time.sleep(a/256)
         for i in range(255, -1, -1):
             dec2bin(i, number)
             GPIO.output (dac, number)
+            time.sleep(a/256)
+
             
 
 

@@ -5,7 +5,7 @@ pin = 22
 GPIO.setmode (GPIO.BCM)
 GPIO.setup(pin, GPIO.OUT)
 
-p = GPIO.PWM(pin, 0.5)
+p = GPIO.PWM(pin, 1000)
 
 try:
     while True:
