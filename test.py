@@ -4,5 +4,4 @@ def dec2bin(x, number):
         x >>= 1
     print(number)
 
-number 
 dec2bin(7)
