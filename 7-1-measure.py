@@ -1,24 +1,30 @@
 import RPi.GPIO as GPIO
 import matplotlib.pyplot as plt
+import numpy as np
 import time
 
+#----------------------Pins---------------------------
 dac = [26, 19, 13, 6, 5, 11, 9, 10]
 number = [0] * len (dac)
 comp = 4
 troyka = 17
 
+#---------------------Modes---------------------------
 GPIO.setmode (GPIO.BCM)
 GPIO.setup (dac, GPIO.OUT)
 GPIO.setup (troyka, GPIO.OUT)
 GPIO.setup (comp, GPIO.IN)
 GPIO.output(dac, 0)
 
+# Перевод в двоичную форму числа х. Заполняет массив number
 def dec2bin(x, number):
     t = x
     for i in range (7, -1, -1):
         number[i] = t % 2
         t >>= 1
 
+# Преобразователь аналогового сигнала в цифровой. 
+# Возвращает значение в диапазоне от 0 до 256
 def adc_new ():
     dac_val = [0] * 8
     for i in range (8):
@@ -39,34 +45,51 @@ def adc_new ():
     print ("i = ", sum, dac_val, "voltage = ", sum/256*3.3)
     return sum
 
+
 try:
-    vals = []
-    time_of_start = time.time()
-    k = 0
+    vals = np.array([]) #массив для записи полученных значений
+    time_of_start = time.time() #время начала измерений
+    k = 0 #переменная для хранения возвращаемого значения
+
+    #-----------Зарядка конденсатора--------------------------
     GPIO.output (troyka, GPIO.HIGH)
     while k <= 256 * 0.60:
         k = adc_new()
-        vals.append (k)
+        vals = np.append (vals, k)
         GPIO.output(dac, 0)
         time.sleep (0.01)
 
+    time_of_mid = time.time() #момент начала разрядки конденсатора
+    
+    #-----------Разрядка конденсатора-------------------------
     GPIO.output (troyka, GPIO.LOW)
     while k >= 256 * 0.03:
         k = adc_new()
-        vals.append (k)
+        vals = np.append(vals, k)
         GPIO.output(dac, 0)
         time.sleep (0.01)
-    time_of_end = time.time()
-    with open (data.txt, 'w') as data:
+
+
+    time_of_end = time.time() #время окончания измерений
+    vals = vals / 256 * 3.3 #преобразуем в вольтаж
+
+    #----------------Запись в файл----------------------------
+    with open ("data.txt", 'w') as data:
         for i in range (len(vals)):
             data.write(str(vals[i]) + '\n')
     with open("settings.txt", 'w') as set:
+        set.write(str(time_of_mid - time_of_start) + '\n')
         set.write(str(time_of_end - time_of_start) + '\n')
+        
 
+    #---------------Вывод графика-----------------------------
+    plt.title('Процесс разряда и разряда конденсатора')
+    plt.xlabel('Время, c')
+    plt.ylabel('Напряжение, В')
     plt.plot(vals)
     plt.show()
 
 finally:
     print ("Finally!")
-    GPIO.output(dac, 0)
+    GPIO.output(dac, 0) #очистка значений на всех пинах
     GPIO.cleanup()
