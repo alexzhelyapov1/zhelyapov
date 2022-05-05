@@ -53,7 +53,7 @@ try:
 
     #-----------Зарядка конденсатора--------------------------
     GPIO.output (troyka, GPIO.HIGH)
-    while k <= 256 * 0.60:
+    while k <= 256 * 0.90:
         k = adc_new()
         vals = np.append (vals, k)
         GPIO.output(dac, 0)
@@ -71,21 +71,26 @@ try:
 
 
     time_of_end = time.time() #время окончания измерений
-    vals = vals / 256 * 3.3 #преобразуем в вольтаж
 
     #----------------Запись в файл----------------------------
     with open ("data.txt", 'w') as data:
         for i in range (len(vals)):
             data.write(str(vals[i]) + '\n')
     with open("settings.txt", 'w') as set:
-        set.write(str(time_of_mid - time_of_start) + '\n')
+        set.write("Общее время эксперимента:\n")
         set.write(str(time_of_end - time_of_start) + '\n')
+        set.write("Время зарядки:\n")
+        set.write(str(time_of_mid - time_of_start) + '\n')
+        set.write("Время периода:\n")
+        set.write(str((time_of_end - time_of_start) / len(vals)) + '\n')
+        set.write("Средняя частота дискретизации:\n")
+        set.write(str(len(vals) / (time_of_end - time_of_start)) + '\n')
         
 
     #---------------Вывод графика-----------------------------
     plt.title('Процесс разряда и разряда конденсатора')
     plt.xlabel('Время, c')
-    plt.ylabel('Напряжение, В')
+    plt.ylabel('Возвращаемое значение, из 256')
     plt.plot(vals)
     plt.show()
 
